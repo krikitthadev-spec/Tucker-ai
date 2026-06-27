@@ -26,10 +26,15 @@ class AppLauncher:
         Returns:
             True if successful
         """
-        cmd = f'am start -n {package_name}/{package_name}.MainActivity'
-        self.controller.shell(cmd)
-        logger.info(f"Launched app: {package_name}")
-        return True
+        try:
+            # Use monkey command to launch app (more reliable in Termux)
+            cmd = f'monkey -p {package_name} 1'
+            self.controller.shell(cmd)
+            logger.info(f"Launched app: {package_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to launch app {package_name}: {e}")
+            return False
     
     def open_chrome(self) -> bool:
         """Open Google Chrome."""
@@ -52,9 +57,13 @@ class AppLauncher:
         Returns:
             True if successful
         """
-        self.controller.shell(f'am force-stop {package_name}')
-        logger.info(f"Closed app: {package_name}")
-        return True
+        try:
+            self.controller.shell(f'am force-stop {package_name}')
+            logger.info(f"Closed app: {package_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to close app {package_name}: {e}")
+            return False
     
     def list_installed_apps(self) -> list:
         """List all installed apps.
@@ -62,9 +71,13 @@ class AppLauncher:
         Returns:
             List of package names
         """
-        output = self.controller.shell('pm list packages')
-        apps = [line.replace('package:', '') for line in output.split('\n')]
-        return [app for app in apps if app]
+        try:
+            output = self.controller.shell('pm list packages')
+            apps = [line.replace('package:', '') for line in output.split('\n')]
+            return [app for app in apps if app]
+        except Exception as e:
+            logger.error(f"Failed to list apps: {e}")
+            return []
 
 if __name__ == '__main__':
     launcher = AppLauncher()
