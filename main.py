@@ -74,7 +74,11 @@ class TuckerAI:
         
         if action == 'app_open':
             app = result.get('app')
-            self.launcher.open_app(app)
+            activity = result.get('activity')
+            if activity:
+                self.launcher.open_app(app, activity)
+            else:
+                self.launcher.open_app(app)
             time.sleep(2)
         
         elif action == 'search':
