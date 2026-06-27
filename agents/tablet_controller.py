@@ -1,99 +1,68 @@
-"""Tablet Controller - Controls the tablet via ADB.
+"""Tablet Controller - Controls the tablet via Accessibility Services.
 
-Handles all communication with the tablet through Android Debug Bridge.
-This is how Tucker actually interacts with your tablet.
+Handles all communication with the tablet through shell commands and accessibility services.
+This version works when running Tucker directly on your tablet via Termux.
 """
 
 import subprocess
 import os
-from typing import List, Optional
+import time
+from typing import List, Optional, Tuple
 from loguru import logger
 from config import Config
 
 class TabletController:
-    """Controls tablet via ADB commands."""
+    """Controls tablet via shell commands (works on Termux)."""
     
     def __init__(self, host: str = None, port: int = None):
         """Initialize tablet controller.
         
         Args:
-            host: ADB host (localhost for USB, IP for WiFi)
-            port: ADB port
+            host: Not used in Termux mode
+            port: Not used in Termux mode
         """
-        self.host = host or Config.ADB_HOST
-        self.port = port or Config.ADB_PORT
-        self.adb_cmd = self._find_adb()
-        
-        if not self.adb_cmd:
-            raise Exception("ADB not found! Install it with: pkg install adb")
-        
-        logger.info(f"TabletController initialized with ADB: {self.adb_cmd}")
+        self.host = host or "localhost"
+        self.port = port or 5037
+        logger.info("TabletController initialized (Termux mode - direct shell access)")
     
-    def _find_adb(self) -> Optional[str]:
-        """Find ADB executable."""
-        # Try common locations
-        common_paths = [
-            'adb',
-            '/usr/bin/adb',
-            '/data/data/com.termux/files/usr/bin/adb',
-        ]
-        
-        for path in common_paths:
-            try:
-                result = subprocess.run([path, '--version'], 
-                                      capture_output=True, 
-                                      text=True)
-                if result.returncode == 0:
-                    return path
-            except FileNotFoundError:
-                continue
-        
-        return None
-    
-    def _run_adb(self, *args) -> str:
-        """Run an ADB command.
+    def _run_shell(self, *args, check_output=False) -> str:
+        """Run a shell command directly.
         
         Args:
-            *args: Arguments to pass to adb
+            *args: Command arguments
+            check_output: If True, return output
             
         Returns:
             Command output as string
         """
-        cmd = [self.adb_cmd] + list(args)
+        cmd = list(args)
         
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
             
-            if result.returncode != 0:
-                logger.error(f"ADB error: {result.stderr}")
+            if result.returncode != 0 and check_output:
+                logger.error(f"Shell error: {result.stderr}")
                 return ""
             
             return result.stdout.strip()
         except subprocess.TimeoutExpired:
-            logger.error("ADB command timed out")
+            logger.error("Command timed out")
             return ""
         except Exception as e:
-            logger.error(f"Failed to run ADB command: {e}")
+            logger.error(f"Failed to run shell command: {e}")
             return ""
     
     def check_connection(self) -> bool:
-        """Check if tablet is connected.
+        """Check if we can access the tablet (always true in Termux mode).
         
         Returns:
-            True if connected, False otherwise
+            True (always connected when running on tablet)
         """
-        output = self._run_adb('devices')
-        connected = 'device' in output and 'offline' not in output
-        
-        if connected:
-            logger.info("✓ Tablet connected!")
-        else:
-            logger.warning("✗ Tablet not connected")
-        
-        return connected
+        logger.info("✓ Tablet connected! (Running on Termux)")
+        return True
     
     def shell(self, command: str) -> str:
-        """Execute shell command on tablet.
+        """Execute shell command directly on tablet.
         
         Args:
             command: Shell command to execute
@@ -101,10 +70,18 @@ class TabletController:
         Returns:
             Command output
         """
-        return self._run_adb('shell', command)
+        try:
+            result = subprocess.run(['sh', '-c', command], 
+                                  capture_output=True, 
+                                  text=True, 
+                                  timeout=10)
+            return result.stdout.strip()
+        except Exception as e:
+            logger.error(f"Shell command failed: {e}")
+            return ""
     
     def tap(self, x: int, y: int) -> bool:
-        """Tap at coordinates on tablet screen.
+        """Tap at coordinates on tablet screen using input command.
         
         Args:
             x: X coordinate
@@ -113,9 +90,13 @@ class TabletController:
         Returns:
             True if successful
         """
-        self.shell(f'input tap {x} {y}')
-        logger.debug(f"Tapped at ({x}, {y})")
-        return True
+        try:
+            self.shell(f'input tap {x} {y}')
+            logger.debug(f"Tapped at ({x}, {y})")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to tap: {e}")
+            return False
     
     def type_text(self, text: str) -> bool:
         """Type text on tablet.
@@ -126,13 +107,18 @@ class TabletController:
         Returns:
             True if successful
         """
-        # Escape special characters
-        text = text.replace('"', '\\"')
-        text = text.replace(' ', '%s')  # ADB needs spaces as %s
-        
-        self.shell(f'input text {text}')
-        logger.debug(f"Typed text: {text}")
-        return True
+        try:
+            # Escape special characters for shell
+            text = text.replace('"', '\\"')
+            text = text.replace("'", "\\'")
+            
+            # Use input text command
+            self.shell(f'input text "{text}"')
+            logger.debug(f"Typed text: {text}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to type: {e}")
+            return False
     
     def press_key(self, key: str) -> bool:
         """Press a key on the tablet.
@@ -157,9 +143,13 @@ class TabletController:
             logger.warning(f"Unknown key: {key}")
             return False
         
-        self.shell(f'input keyevent {code}')
-        logger.debug(f"Pressed key: {key}")
-        return True
+        try:
+            self.shell(f'input keyevent {code}')
+            logger.debug(f"Pressed key: {key}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to press key: {e}")
+            return False
     
     def swipe(self, x1: int, y1: int, x2: int, y2: int, duration: int = 500) -> bool:
         """Swipe on tablet screen.
@@ -172,12 +162,16 @@ class TabletController:
         Returns:
             True if successful
         """
-        self.shell(f'input swipe {x1} {y1} {x2} {y2} {duration}')
-        logger.debug(f"Swiped from ({x1}, {y1}) to ({x2}, {y2})")
-        return True
+        try:
+            self.shell(f'input swipe {x1} {y1} {x2} {y2} {duration}')
+            logger.debug(f"Swiped from ({x1}, {y1}) to ({x2}, {y2})")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to swipe: {e}")
+            return False
     
     def take_screenshot(self, filename: str) -> bool:
-        """Take a screenshot on the tablet.
+        """Take a screenshot on the tablet (Termux mode).
         
         Args:
             filename: Where to save the screenshot
@@ -185,18 +179,25 @@ class TabletController:
         Returns:
             True if successful
         """
-        tablet_path = '/sdcard/tucker_screenshot.png'
-        
-        # Take screenshot on tablet
-        self.shell(f'screencap -p {tablet_path}')
-        
-        # Pull to computer
         try:
-            self._run_adb('pull', tablet_path, filename)
-            logger.info(f"Screenshot saved to {filename}")
-            return True
+            # In Termux, we can use screencap directly
+            result = subprocess.run(['screencap', '-p', filename], 
+                                  capture_output=True, 
+                                  text=True,
+                                  timeout=5)
+            
+            if result.returncode == 0:
+                logger.info(f"Screenshot saved to {filename}")
+                return True
+            else:
+                logger.error(f"Screenshot failed: {result.stderr}")
+                return False
+                
+        except FileNotFoundError:
+            logger.error("screencap not found. Try: pkg install scrcpy")
+            return False
         except Exception as e:
-            logger.error(f"Failed to pull screenshot: {e}")
+            logger.error(f"Failed to take screenshot: {e}")
             return False
     
     def get_screen_info(self) -> dict:
