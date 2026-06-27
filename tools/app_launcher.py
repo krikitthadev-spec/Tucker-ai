@@ -27,9 +27,9 @@ class AppLauncher:
             True if successful
         """
         try:
-            # Use monkey command to launch app (more reliable in Termux)
-            cmd = f'monkey -p {package_name} 1'
-            self.controller.shell(cmd)
+            # Try using am start command with the Termux am binary
+            cmd = f'{self.controller.am_path} start -n {package_name}/{package_name}.MainActivity'
+            output = self.controller.shell(cmd)
             logger.info(f"Launched app: {package_name}")
             return True
         except Exception as e:
@@ -58,7 +58,7 @@ class AppLauncher:
             True if successful
         """
         try:
-            self.controller.shell(f'am force-stop {package_name}')
+            self.controller.shell(f'{self.controller.am_path} force-stop {package_name}')
             logger.info(f"Closed app: {package_name}")
             return True
         except Exception as e:
