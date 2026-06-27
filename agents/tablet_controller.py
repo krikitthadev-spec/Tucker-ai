@@ -23,7 +23,31 @@ class TabletController:
         """
         self.host = host or "localhost"
         self.port = port or 5037
-        logger.info("TabletController initialized (Termux mode - direct shell access)")
+        self.am_path = self._find_am()
+        logger.info(f"TabletController initialized (Termux mode) - am: {self.am_path}")
+    
+    def _find_am(self) -> str:
+        """Find the am command path."""
+        paths = [
+            '/data/data/com.termux/files/usr/bin/am',
+            '/system/bin/am',
+            'am'
+        ]
+        
+        for path in paths:
+            try:
+                result = subprocess.run([path, '--version'], 
+                                      capture_output=True, 
+                                      text=True,
+                                      timeout=2)
+                if result.returncode == 0 or 'am' in result.stderr.lower():
+                    logger.debug(f"Found am at: {path}")
+                    return path
+            except:
+                continue
+        
+        logger.warning("am command not found, will attempt with default 'am'")
+        return 'am'
     
     def _run_shell(self, *args, check_output=False) -> str:
         """Run a shell command directly.
@@ -91,7 +115,7 @@ class TabletController:
             True if successful
         """
         try:
-            self.shell(f'input tap {x} {y}')
+            self.shell(f'{self.am_path} input tap {x} {y}')
             logger.debug(f"Tapped at ({x}, {y})")
             return True
         except Exception as e:
@@ -113,7 +137,7 @@ class TabletController:
             text = text.replace("'", "\\'")
             
             # Use input text command
-            self.shell(f'input text "{text}"')
+            self.shell(f'{self.am_path} input text "{text}"')
             logger.debug(f"Typed text: {text}")
             return True
         except Exception as e:
@@ -144,7 +168,7 @@ class TabletController:
             return False
         
         try:
-            self.shell(f'input keyevent {code}')
+            self.shell(f'{self.am_path} input keyevent {code}')
             logger.debug(f"Pressed key: {key}")
             return True
         except Exception as e:
@@ -163,7 +187,7 @@ class TabletController:
             True if successful
         """
         try:
-            self.shell(f'input swipe {x1} {y1} {x2} {y2} {duration}')
+            self.shell(f'{self.am_path} input swipe {x1} {y1} {x2} {y2} {duration}')
             logger.debug(f"Swiped from ({x1}, {y1}) to ({x2}, {y2})")
             return True
         except Exception as e:
@@ -207,7 +231,7 @@ class TabletController:
             Dict with screen dimensions and info
         """
         try:
-            output = self.shell('wm size')
+            output = self.shell(f'{self.am_path} wm size')
             # Output format: "Physical size: 1920x1080"
             if 'x' in output:
                 size = output.split(':')[1].strip()
