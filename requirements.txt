@@ -1,17 +1,13 @@
 # Core Dependencies
 adb-shell==0.3.3
-subprocess32==3.5.4
 
 # AI/LLM Libraries
 requests==2.31.0
 openai==1.3.0  # For ChatGPT API
 anthropic==0.3.0  # For Claude API (optional)
-transformers==4.30.0  # For local AI models
-torch==2.0.0  # For local models (heavy - optional)
 
 # Computer Vision & OCR
 opencv-python==4.8.0
-pytesseract==0.3.10  # Requires Tesseract installation
 Pillow==10.0.0
 
 # Environment & Config
@@ -23,10 +19,8 @@ click==8.1.7  # CLI helper
 colorama==0.4.6  # Colored terminal output
 loguru==0.7.0  # Better logging
 
-# Optional: Voice/Audio
+# Optional: Voice/Audio (lightweight)
 speech-recognition==3.10.0  # For voice commands
-pyttsx3==2.90  # For text-to-speech
 
 # Optional: Async operations
 aiohttp==3.8.5
-asyncio==3.4.3
