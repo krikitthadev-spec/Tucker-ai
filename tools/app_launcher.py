@@ -17,18 +17,22 @@ class AppLauncher:
         """
         self.controller = controller or TabletController()
     
-    def open_app(self, package_name: str) -> bool:
+    def open_app(self, package_name: str, activity: str = None) -> bool:
         """Open an app by package name.
         
         Args:
             package_name: App package name (e.g., com.android.chrome)
+            activity: Activity name (optional, defaults to package.MainActivity)
             
         Returns:
             True if successful
         """
         try:
+            if not activity:
+                activity = f"{package_name}.MainActivity"
+            
             # Try using am start command with the Termux am binary
-            cmd = f'{self.controller.am_path} start -n {package_name}/{package_name}.MainActivity'
+            cmd = f'{self.controller.am_path} start -n {package_name}/{activity}'
             output = self.controller.shell(cmd)
             logger.info(f"Launched app: {package_name}")
             return True
@@ -38,7 +42,7 @@ class AppLauncher:
     
     def open_chrome(self) -> bool:
         """Open Google Chrome."""
-        return self.open_app('com.android.chrome')
+        return self.open_app('com.android.chrome', 'com.google.android.apps.chrome.Main')
     
     def open_youtube(self) -> bool:
         """Open YouTube."""
