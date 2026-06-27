@@ -102,6 +102,7 @@ Respond with a JSON action plan:
 {
     "action": "app_open" | "tap" | "type" | "swipe" | "search" | "navigate",
     "app": "package name" (for app_open),
+    "activity": "activity name" (optional, for app_open),
     "x": int, "y": int (for tap/swipe),
     "text": "text to type" (for type),
     "query": "search term" (for search),
@@ -164,6 +165,7 @@ Respond with a JSON action plan:
                     "success": True,
                     "action": "app_open",
                     "app": "com.android.chrome",
+                    "activity": "com.google.android.apps.chrome.Main",
                     "reason": "User asked to open Chrome"
                 }
             elif 'youtube' in text:
