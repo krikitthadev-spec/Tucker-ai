@@ -2,7 +2,7 @@
 
 An AI agent that runs completely on your Android tablet using Termux. Controls apps, performs research, and executes tasks without needing a computer.
 
-## 🎯 What Tucker Does
+## What Tucker Does
 
 - **Controls your tablet apps** using Accessibility Services
 - **Understands natural language** commands using AI
@@ -12,7 +12,7 @@ An AI agent that runs completely on your Android tablet using Termux. Controls a
 - **Executes multi-step tasks** intelligently
 - **Works entirely on your tablet** (optional: add AI for smarter decisions)
 
-## 📋 Requirements
+## Requirements
 
 ### Hardware
 - Android tablet (API 24+)
@@ -24,7 +24,7 @@ An AI agent that runs completely on your Android tablet using Termux. Controls a
 - Python 3.8+
 - Git
 
-## 🚀 Installation (Tablet Only)
+##  Installation (Tablet Only)
 
 ### Step 1: Install Termux
 
@@ -113,7 +113,7 @@ cd ~/tucker/Tucker-ai
 python main.py
 ```
 
-## 📚 Project Structure
+## Project Structure
 
 ```
 Tucker-ai/
@@ -140,7 +140,7 @@ Tucker-ai/
     └── research_example.py  # Research topics
 ```
 
-## 🎓 How It Works
+##  How It Works
 
 ```
 1. You give Tucker a command
@@ -161,7 +161,7 @@ Tucker-ai/
    - Reports back to you
 ```
 
-## 💻 Quick Start
+##  Quick Start
 
 ### Test Your Setup
 
@@ -193,7 +193,7 @@ Tucker> Screenshot
 Tucker> Open Settings
 ```
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### "ImportError: No module named..."
 
@@ -240,7 +240,7 @@ echo 'alias python=python3' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-## 📖 Learning Path
+## Learning Path
 
 ### Step 1: Test Basic Setup
 ```bash
@@ -259,7 +259,7 @@ Get a free key from OpenAI and add it to `.env`
 ### Step 4: Learn the Code
 Read the files in `agents/` and `tools/` folders
 
-## 🤝 Common Commands
+## common Commands
 
 | Command | What it does |
 |---------|--------------|
@@ -270,7 +270,7 @@ Read the files in `agents/` and `tools/` folders
 | `Help` | Shows all commands |
 | `Quit` | Exit Tucker |
 
-## 🆘 Getting Help
+## Getting Help
 
 **Problem: Commands not working**
 1. Check Accessibility Service: Settings → Accessibility (must be ON)
@@ -289,7 +289,7 @@ pkg install --reinstall python
 pkg install --reinstall git
 ```
 
-## 💡 Pro Tips
+##  Pro Tips
 
 ✅ **Enable Accessibility** - Settings → Accessibility (must be ON)
 ✅ **Grant Storage Permissions** - Run `termux-setup-storage`
@@ -304,7 +304,7 @@ MIT License - feel free to use and modify
 
 ---
 
-## 🚀 Quick Setup Command
+##  Quick Setup Command
 
 Copy and paste this entire thing into Termux to install everything at once:
 
